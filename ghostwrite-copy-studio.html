@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ghostwrite — copy studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --black: #0a0a0a;
+  --white: #f0ede8;
+  --grey: #161616;
+  --mid: #222;
+  --accent: #c8ff00;
+  --muted: #555;
+  --border: #1e1e1e;
+  --mono: 'DM Mono', 'Courier New', monospace;
+  --sans: 'DM Sans', 'Helvetica Neue', Arial, sans-serif;
+  --display: 'Bebas Neue', 'Arial Black', Impact, sans-serif;
+}
+
+body {
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--sans);
+  font-weight: 300;
+  min-height: 100vh;
+  font-size: 13px;
+}
+
+/* ── HEADER ── */
+#header {
+  border-bottom: 1px solid var(--border);
+  padding: 18px 36px;
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  position: sticky;
+  top: 0;
+  background: var(--black);
+  z-index: 100;
+}
+.logo { font-family: var(--display); font-size: 22px; letter-spacing: 0.05em; color: var(--white); }
+.logo-sub { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; }
+.tagline { margin-left: auto; font-family: var(--mono); font-size: 9px; color: var(--muted); font-style: italic; letter-spacing: 0.08em; }
+
+/* ── TABS ── */
+#tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: var(--black);
+  position: sticky;
+  top: 57px;
+  z-index: 99;
+}
+.tab-btn {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 12px 24px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: var(--muted);
+  border-bottom: 1px solid transparent;
+  margin-bottom: -1px;
+  transition: all 0.15s;
+}
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-btn:hover { color: var(--white); }
+
+/* ── PAGES ── */
+.page { display: none; }
+.page.active { display: grid; grid-template-columns: 400px 1fr; min-height: calc(100vh - 110px); }
+
+/* ── LEFT PANEL ── */
+.left-panel {
+  border-right: 1px solid var(--border);
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 110px;
+  height: calc(100vh - 110px);
+  overflow-y: auto;
+}
+.panel-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+/* ── SHEET FETCH ── */
+.sheet-section { margin-bottom: 16px; }
+.sheet-row { display: flex; gap: 8px; margin-top: 8px; }
+.sheet-input {
+  flex: 1;
+  background: var(--grey);
+  border: 1px solid var(--border);
+  color: var(--white);
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 7px 10px;
+  outline: none;
+}
+.sheet-input:focus { border-color: var(--muted); }
+.btn-fetch {
+  background: none;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 7px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+.btn-fetch:hover { background: var(--accent); color: var(--black); }
+.sheet-msg {
+  font-family: var(--mono);
+  font-size: 9px;
+  line-height: 1.6;
+  margin-top: 8px;
+  color: var(--muted);
+}
+.sheet-msg.error { color: #ff5555; }
+
+/* ── FIELDS ── */
+.fields-wrap { border-top: 1px solid var(--border); }
+.field {
+  border-bottom: 1px solid var(--border);
+  padding: 14px 0;
+}
+.field-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 7px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.field-hint { font-size: 9px; color: #2e2e2e; font-style: italic; text-transform: none; letter-spacing: 0; }
+.field textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--white);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 300;
+  line-height: 1.6;
+  resize: none;
+  outline: none;
+  padding: 0;
+}
+.field textarea::placeholder { color: #2a2a2a; font-style: italic; }
+
+/* ── GENERATE BTN ── */
+.btn-generate {
+  width: 100%;
+  background: var(--accent);
+  color: var(--black);
+  border: none;
+  font-family: var(--display);
+  font-size: 15px;
+  letter-spacing: 0.1em;
+  padding: 14px 24px;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-top: 20px;
+}
+.btn-generate:hover { background: #d4ff1a; }
+.btn-generate:disabled { background: var(--mid); color: var(--muted); cursor: not-allowed; }
+.btn-hint { font-family: var(--mono); font-size: 8px; color: #252525; text-align: center; margin-top: 7px; letter-spacing: 0.1em; }
+
+/* ── RIGHT PANEL ── */
+.right-panel { padding: 28px 36px; }
+
+.status-bar {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 18px;
+  font-style: italic;
+}
+.status-bar.generating { color: var(--accent); }
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 10px;
+  opacity: 0.12;
+}
+.empty-g { font-family: var(--display); font-size: 130px; color: var(--border); line-height: 1; }
+.empty-text { font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+
+/* ── SKELETON ── */
+.skeleton-item { border-bottom: 1px solid var(--border); padding: 14px 0; }
+.skel-label { height: 7px; width: 90px; background: var(--mid); border-radius: 2px; margin-bottom: 10px; animation: pulse 1.5s ease-in-out infinite; }
+.skel-line { height: 5px; background: var(--grey); border-radius: 2px; margin-bottom: 7px; animation: pulse 1.5s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:.9} }
+
+/* ── DELIVERABLES ── */
+.deliverable { border-bottom: 1px solid var(--border); }
+.deliv-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 0;
+  cursor: pointer;
+  user-select: none;
+}
+.deliv-title {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--white);
+  transition: color 0.15s;
+}
+.deliverable.open .deliv-title { color: var(--accent); }
+.deliv-actions { display: flex; align-items: center; gap: 8px; }
+.btn-copy {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: none;
+  border: 1px solid var(--border);
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-copy:hover, .btn-copy.copied { border-color: var(--accent); color: var(--accent); }
+.chevron {
+  font-size: 8px;
+  color: var(--muted);
+  transition: transform 0.2s;
+  display: inline-block;
+}
+.deliverable.open .chevron { transform: rotate(180deg); }
+.deliv-body { display: none; padding-bottom: 20px; }
+.deliverable.open .deliv-body { display: block; }
+
+/* Editable content area */
+.deliv-content {
+  font-size: 12px;
+  line-height: 1.9;
+  color: #bbb;
+  white-space: pre-wrap;
+  font-weight: 300;
+  outline: none;
+  min-height: 40px;
+  border: 1px solid transparent;
+  padding: 6px 8px;
+  margin: -6px -8px;
+  transition: border-color 0.15s;
+  border-radius: 2px;
+}
+.deliv-content:focus {
+  border-color: var(--border);
+  color: var(--white);
+  background: var(--grey);
+}
+.deliv-content:hover:not(:focus) { border-color: #1a1a1a; }
+.edit-hint {
+  font-family: var(--mono);
+  font-size: 8px;
+  color: #2a2a2a;
+  margin-bottom: 6px;
+  letter-spacing: 0.08em;
+}
+
+/* ── EXPORT BAR ── */
+.export-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+.export-label { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: 0.1em; }
+.btn-export {
+  background: var(--accent);
+  color: var(--black);
+  border: none;
+  font-family: var(--display);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  padding: 8px 18px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-export:hover { background: #d4ff1a; }
+
+/* ── VERSIONS (Ideation) ── */
+.version-card { border: 1px solid var(--border); margin-bottom: 12px; }
+.version-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  user-select: none;
+}
+.version-title { font-family: var(--mono); font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--white); transition: color 0.15s; }
+.version-card.open .version-title { color: var(--accent); }
+.version-body { display: none; padding: 16px 16px 20px; border-top: 1px solid var(--border); }
+.version-card.open .version-body { display: block; }
+.version-content {
+  font-size: 12px;
+  line-height: 1.9;
+  color: #bbb;
+  white-space: pre-wrap;
+  font-weight: 300;
+  outline: none;
+  min-height: 40px;
+  border: 1px solid transparent;
+  padding: 6px 8px;
+  margin: -6px -8px;
+  transition: border-color 0.15s;
+  border-radius: 2px;
+}
+.version-content:focus { border-color: var(--border); color: var(--white); background: var(--grey); }
+
+.error-msg { font-family: var(--mono); font-size: 10px; color: #ff5555; padding: 12px 14px; border: 1px solid #ff5555; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: var(--black); }
+::-webkit-scrollbar-thumb { background: var(--mid); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <span class="logo">ghostwrite</span>
+  <span class="logo-sub">/ copy studio</span>
+  <span class="tagline">ghosts tell stories.</span>
+</div>
+
+<!-- TABS — Story Ideation first -->
+<div id="tabs">
+  <button class="tab-btn active" onclick="switchTab('ideation')">Story Ideation</button>
+  <button class="tab-btn" onclick="switchTab('copy')">Copy Generator</button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE: STORY IDEATION
+═══════════════════════════════════════════════════════════════ -->
+<div id="page-ideation" class="page active">
+
+  <div class="left-panel">
+    <div class="panel-label">story seed</div>
+    <p style="font-family:var(--mono);font-size:9px;color:#333;line-height:1.7;margin-bottom:20px;letter-spacing:.04em;">
+      Drop in a rough story idea — a sentence, a direction, a vibe. We'll expand it into 3 distinct versions.
+    </p>
+    <div class="fields-wrap">
+      <div class="field">
+        <div class="field-label">Rough Story <span class="field-hint">the seed</span></div>
+        <textarea id="i-seed" rows="6" placeholder="e.g. This ghost tells the story of Stone Cold Steve Austin — the anti-hero who redefined what it meant to be a champion…"></textarea>
+      </div>
+      <div class="field">
+        <div class="field-label">Additional Context <span class="field-hint">optional</span></div>
+        <textarea id="i-context" rows="3" placeholder="Partner, era, product type, tone direction, anything relevant…"></textarea>
+      </div>
+    </div>
+    <button class="btn-generate" id="btn-ideation" onclick="generateIdeation()">GENERATE 3 VERSIONS</button>
+    <div class="btn-hint">⌘ + ENTER</div>
+  </div>
+
+  <div class="right-panel">
+    <div id="ideation-status" class="status-bar" style="display:none"></div>
+    <div id="ideation-output">
+      <div class="empty-state">
+        <div class="empty-g">G</div>
+        <div class="empty-text">seed a story · get 3 versions</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE: COPY GENERATOR
+═══════════════════════════════════════════════════════════════ -->
+<div id="page-copy" class="page">
+
+  <div class="left-panel">
+    <div class="panel-label">product brief</div>
+
+    <!-- Sheet fetch -->
+    <div class="sheet-section">
+      <div class="field-label">Load Product Brief <span class="field-hint">from Google Sheet</span></div>
+      <div class="sheet-row">
+        <select class="sheet-input" id="product-select" style="cursor:pointer;color:#f0ede8;background:#161616;">
+          <option value="" style="color:#555;">— select a product —</option>
+        </select>
+        <button class="btn-fetch" onclick="loadSelectedProduct()">LOAD</button>
+      </div>
+      <div id="sheet-msg" class="sheet-msg" style="display:none"></div>
+    </div>
+
+    <div class="fields-wrap">
+      <div class="field">
+        <div class="field-label">Product Name</div>
+        <textarea id="f-name" rows="1" placeholder='e.g. NBA "2025-26 Season"'></textarea>
+      </div>
+      <div class="field">
+        <div class="field-label">Product Story <span class="field-hint">heart of everything</span></div>
+        <textarea id="f-story" rows="4" placeholder="This ghost tells the story of…"></textarea>
+      </div>
+      <div class="field">
+        <div class="field-label">Partner / League</div>
+        <textarea id="f-partner" rows="1" placeholder="NBA, MLB, UFC, Outkast…"></textarea>
+      </div>
+      <div class="field">
+        <div class="field-label">Product Features <span class="field-hint">what matters</span></div>
+        <textarea id="f-features" rows="3" placeholder="New face design, NFC chip, rookie patch, player exclusives…"></textarea>
+      </div>
+      <div class="field">
+        <div class="field-label">Chase System <span class="field-hint">rare variants</span></div>
+        <textarea id="f-chase" rows="2" placeholder="Fire /1, Chrome /5, Gold /10, Emerald /25, Victory /50, Base /800…"></textarea>
+      </div>
+      <div class="field">
+        <div class="field-label">Release Info <span class="field-hint">dates, format, price</span></div>
+        <textarea id="f-release" rows="3" placeholder="Blind Dutch Auction, March 3–6, 9AM ET open, 300 cases available…"></textarea>
+      </div>
+      <div class="field">
+        <div class="field-label">Tagline <span class="field-hint">optional — partner copy</span></div>
+        <textarea id="f-tagline" rows="1" placeholder="e.g. And that's the bottom line, 'cause Stone Cold said so!"></textarea>
+      </div>
+    </div>
+
+    <button class="btn-generate" id="btn-copy" onclick="generateCopy()">GENERATE ALL COPY</button>
+    <div class="btn-hint">⌘ + ENTER</div>
+  </div>
+
+  <div class="right-panel">
+    <div id="copy-status" class="status-bar" style="display:none"></div>
+    <div id="copy-output">
+      <div class="empty-state">
+        <div class="empty-g">G</div>
+        <div class="empty-text">fill in the brief · generate the copy</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── CONSTANTS ────────────────────────────────────────────────────────────────
+
+const ABOUT_GW = `ABOUT GHOSTWRITE
+
+ghosts tell stories. Founded by Josh Luber (co-founder of StockX and Fanatics Collectibles), ghostwrite sits at the intersection of culture and commerce, creating toys ("ghosts") that are true, long-term collectibles. ghostwrite has created licensed toys with the NBA, WNBA, MLB, UFC, and WWE and collaborations with Eastside Golf, Rocky's Matcha, Astro Boy, Points of Sail, Reebok, HIDDEN, and StockX. Investors include Michael Rubin, Mark Wahlberg, Scooter Braun, David Krane, and Revolution's Rise of the Rest Seed Fund, along with leading figures in the culture/commerce space, including Gary Vaynerchuk, Rocky Xu (founder of Rocky's Matcha), Gabe Whaley (founder of MSCHF), and Chinese Pop Superstar, Jackson Wang.`;
+
+const EXAMPLES = `EXAMPLES OF THE GHOSTWRITE VOICE:
+
+EXAMPLE 1 — The Costacos Brothers / Land of Boz (nostalgia as weapon):
+ghosts tell stories
+Brian "The Boz" Bosworth played the game of football with unmatched violence, malevolence, and style. He patrolled the line of scrimmage like the antihero of an action movie. Then he actually became one. The rakish mohawk. The wrap-around shades. The diamond-stud earrings. Some athletes transcend the mortal plane of sport and can only be conceived in the vocabulary of myth and fantasy. Lucky for us - we children of the 80s and 90s - we had the Costacos Brothers. This ghost tells the story of "The Land of Boz": the most iconic poster of the most iconic linebacker of our generation, immortalizing "The Boz" on the yellow brick road. Decades ago, this story likely adorned the wall of your childhood bedroom. Now, it can adorn your grownup shelf: a 400% + 100% pairing, the first in ghostwrite history.
+
+EXAMPLE 2 — The Red Pencil (philosophical, mundane made epic):
+ghosts tell stories
+So much depends upon a red colored pencil. Sitting on a table, next to its standard black peer, it may appear to you identical - a mere difference in shade. Yet its power is unimaginably greater. With a sharpened point, it can reduce a student to tears. With a heavy stroke, it can render a balance sheet insolvent. Tilted on a bias, it can gently shade in a sunset. It marks the transition from writing and editing; enunciation and emphasis; a dreary world of black and grey versus a world that is bursting with color. The first installment of our "No. 2 Pencil" franchise was pure black graphite. Released in May of 2024, exclusive to Friends & Family, it has become one of the most coveted and collectible ghosts to date. But if the first pencil told the story, the second one - this red variant - offers a chance to revise it.
+
+EXAMPLE 3 — Eminem / Detroit Pistons (punchy, compressed):
+ghosts tell stories
+Guess who's back. If you fell asleep at Halloween in 2024 and woke up after Christmas, you wouldn't have missed a single Pistons win. Flash forward one short season and the Bad Boys 2.0 are lighting the league on fire - with all the swagger and smoke of the originals. No one personifies the bet-against-us-at-your-peril swagger of the Pistons than our inaugural NBA Famous Fan, Eminem. Peep the hockey mask; the StockX jersey patch; the kicks. He is the spirit of Detroit, and that spirit will not be denied.
+
+EXAMPLE 4 — Undertaker (emotional range, full commitment):
+ghosts tell stories
+Death. It comes for us all. We try to avoid it. We try to outrun it. But sooner or later, we must look it square in the face. Edgar Allan Poe, Ozzy Osbourne, Tim Burton. Every generation has an artist who speaks for Death. For us children of the 90s, that artist was Undertaker. At first, we trembled before him in terror. Yet the deeper we went into his story, the more our feelings changed. Fascination. Empathy. Even, somehow, Love. For his 35th anniversary, this ghost tells the story of Undertaker, The Deadman who taught us to face our fears and transcend our mortal imagination.
+
+EXAMPLE 5 — WNBA 2024 Season (epic scale, stacked rhythm):
+ghosts tell stories
+"There are decades when nothing happens, and there are weeks when decades happen."
+This quote is over 100 years old, from a time when teenagers were middle-aged, indoor plumbing was a flex, and the phrase "female athlete" was, to many, an oxymoron. Yet a century later, the truth remains the same: big things happen fast.
+The 2024 WNBA season was just 16 weeks long. But in those 16 weeks, decades happened. The mythology of the past combined with the insurgency of the present; legends of the league bestowed their inheritance to a new generation of ballers; and all of that - plus some magic, otherworldly spark - inspired nothing less than a cultural revolution.
+How many more times will you watch the full moon rise? Perhaps 20. How many more times will you be consumed by true love? Probably even less.
+And how many more seasons will you remember like this one? Ten years from now, twenty years from now - how many more stories will you remember like these?
+Angel Reese, unbowed and unapologetic, taking on the league one double double at a time.
+Caitlin Clark, awestruck, hugging her heroes, then detonating a Midwestern Supernova Stardom Device in front of sell-out crowds.
+A'ja Wilson, standing tall amid the surging upstarts, and quietly (or not so quietly) asserting her unquestionable dominance.
+The rivalries. The rookies. The ratings.
+And Aubrey Plaza's torn ACL.
+Ten years from now, twenty years from now, these are the stories we will continue to tell.
+***
+The box you hold in your hands right now isn't just the first ghostwrite x WNBA blind box. It is the first ghostwrite blind box ever. Period. Full stop. The first of its kind.
+The greatest WNBA season - ever. The first ghostwrite blind box - ever.
+We need not itemize the significance of historical synchronicity here. That would be gauche. And unnecessary: the significance speaks for itself.
+We'll just say this: ghosts tell stories. And these stories - the stories of the WNBA 2024 season and all that came before it - will be with us for decades to come.`;
+
+const COPY_SYSTEM = `You are the in-house copywriter for ghostwrite, a collectible toy brand that makes 3D figures called "ghosts." Every ghost is a vehicle for storytelling. You will be given a product brief and generate copy for seven deliverables.
+
+You write exclusively in the ghostwrite voice.
+
+THE PHILOSOPHY:
+ghosts tell stories. This is not a tagline — it is the operating premise. Every piece of copy must be grounded in a genuine story worth telling.
+
+VOICE RULES:
+Make the argument. Every reference must earn its place by illuminating the product's deeper meaning.
+Stack short declarative sentences for rhythm and weight when the subject calls for it.
+Treat scarcity and product mechanics as mythology, not footnotes.
+Be self-aware without being ironic. Commit fully.
+Never explain, never beg, never over-sell. Trust the reader. Trust the story.
+Nostalgia is a weapon, not a comfort.
+Commit fully to emotional range.
+
+FORMATTING RULES:
+- Always lowercase: ghostwrite, ghosts
+- Every packaging story begins: "ghosts tell stories."
+- No exclamation points unless truly earned
+- No bullet points in story copy
+- Short paragraphs; fragments are fine when they land
+- Never use: innovative, exciting, amazing, unique, iconic
+
+---
+
+${EXAMPLES}
+
+---
+
+EMAIL FORMAT RULES:
+
+ANNOUNCEMENT EMAIL — follow this structure exactly:
+Subject: [punchy subject line]
+
+[Hook: 1-2 sentences, sharp, sets the tone]
+
+[Context paragraph: why this matters, what came before, why now]
+
+Here's what you need to know:
+• [feature bullet from product features]
+• [feature bullet]
+• [additional feature bullets as needed]
+
+[CTA BUTTON: SEE GHOSTS]
+
+Release details:
+• [start date and time]
+• [end date and time]
+• [population / cases available]
+• [auction format]
+• [max bids per customer if applicable]
+
+[CTA BUTTON: READ THE STORY]
+
+[If tagline provided, include it here in italics]
+
+---
+
+LAUNCH EMAIL — follow this structure exactly (keep it SHORT):
+Subject: [subject line]
+
+[Single hook sentence: bidding/sale is now open for [product].]
+
+[One sentence on the mechanic: window, how winners determined.]
+
+Details:
+• [Population]
+• [Available for sale]
+• [Size]
+• [Max bids per person if applicable]
+• [Auction format]
+• [Closing date and time]
+
+[CTA BUTTON: BID NOW]
+
+[Brief sign-off: IG, archive, happy bidding — 1-2 lines max]
+
+[If tagline provided, include it here in italics]
+
+---
+
+PRESS RELEASE FORMAT:
+FOR IMMEDIATE RELEASE
+
+[Headline — ghostwrite voice]
+[Subhead — one factual sentence]
+
+[City, Date] — [Opening paragraph in ghostwrite voice]
+
+[2-3 body paragraphs: factual, journalistic]
+
+[Release/purchase details paragraph]
+
+###
+
+${ABOUT_GW}
+
+Note: Do NOT include tagline in press release or partner pitch doc.
+
+---
+
+PARTNER PITCH DOC FORMAT:
+ghostwrite x [Partner] — [Product Name]
+A brief for [Partner] stakeholders
+
+[Opening paragraph: the story and why this partnership matters]
+
+THE PRODUCT
+[Product details: what it is, size, edition, chase system]
+
+THE STORY
+[2-3 sentences on the narrative]
+
+THE RELEASE
+[Dates, format, availability, pricing]
+
+THE BRAND
+[2-3 sentences on ghostwrite's position and credibility]
+
+---
+
+OUTPUT FORMAT — use these exact headers, nothing else before or between them:
+## PACKAGING STORY
+## ANNOUNCEMENT EMAIL
+## LAUNCH EMAIL
+## PARTNER PITCH DOC
+## PRESS RELEASE
+## INSTAGRAM CAPTION
+## LINKEDIN POST`;
+
+const IDEATION_SYSTEM = `You are the creative director and lead storyteller for ghostwrite, a collectible toy brand. Take a rough story seed and expand it into 3 fully-realized, distinct packaging story options — each a genuinely different creative interpretation.
+
+Each version: 2-4 paragraphs, ghostwrite voice, begins with "ghosts tell stories."
+
+VOICE RULES:
+- Make the argument. Build something from your references.
+- Stack short declarative sentences for rhythm when it serves.
+- Be self-aware without being ironic. Commit fully.
+- Never explain, never beg, never over-sell.
+- Nostalgia is a weapon. Use it to propel forward.
+- Commit to emotional range. Nothing is too small.
+
+FORMATTING:
+- Always lowercase: ghostwrite, ghosts
+- Each version begins: "ghosts tell stories."
+- No bullet points
+- Never: innovative, exciting, amazing, unique, iconic
+
+${EXAMPLES}
+
+OUTPUT FORMAT — exactly 3 versions, headers must match this pattern:
+## VERSION 1 — [SHORT ANGLE LABEL IN CAPS]
+## VERSION 2 — [SHORT ANGLE LABEL IN CAPS]
+## VERSION 3 — [SHORT ANGLE LABEL IN CAPS]
+
+Each version must feel genuinely different: different opening move, different references, different emotional register. No commentary. Just the stories.`;
+
+const DELIVERABLE_KEYS = ["PACKAGING STORY","ANNOUNCEMENT EMAIL","LAUNCH EMAIL","PARTNER PITCH DOC","PRESS RELEASE","INSTAGRAM CAPTION","LINKEDIN POST"];
+const DELIVERABLE_LABELS = {
+  "PACKAGING STORY":"Packaging Story","ANNOUNCEMENT EMAIL":"Announcement Email",
+  "LAUNCH EMAIL":"Launch Email","PARTNER PITCH DOC":"Partner Pitch Doc",
+  "PRESS RELEASE":"Press Release","INSTAGRAM CAPTION":"Instagram Caption","LINKEDIN POST":"LinkedIn Post"
+};
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let currentDeliverables = {};
+let currentTab = 'ideation';
+
+// ─── TABS ─────────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0 && tab === 'ideation') || (i === 1 && tab === 'copy'));
+  });
+  document.getElementById('page-ideation').classList.toggle('active', tab === 'ideation');
+  document.getElementById('page-copy').classList.toggle('active', tab === 'copy');
+}
+
+// ─── API ──────────────────────────────────────────────────────────────────────
+async function callClaude(system, user) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 4000,
+      system,
+      messages: [{ role: 'user', content: user }]
+    })
+  });
+  const data = await res.json();
+  if (!res.ok || data.error) throw new Error(data.error?.message || 'API error');
+  return data.content?.map(b => b.text || '').join('') || '';
+}
+
+// ─── SHEET INTEGRATION ────────────────────────────────────────────────────────
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzpGszWI9b6uK728SVREWwmPNwwVKG5QyvmDd8k3BpsGcrjnF5mVeAcuRzt0NNAQdY/exec';
+let allProducts = [];
+
+async function loadProductsFromSheet() {
+  const select = document.getElementById('product-select');
+  const msg = document.getElementById('sheet-msg');
+  try {
+    const res = await fetch(SHEET_URL);
+    allProducts = await res.json();
+    select.innerHTML = '<option value="">— select a product —</option>';
+    allProducts.forEach((p, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = p['Product Name'] || `Product ${i + 1}`;
+      select.appendChild(opt);
+    });
+    msg.style.display = 'none';
+  } catch(e) {
+    msg.style.display = 'block';
+    msg.className = 'sheet-msg error';
+    msg.textContent = 'Could not load sheet. Check the Apps Script is deployed and accessible.';
+  }
+}
+
+function loadSelectedProduct() {
+  const select = document.getElementById('product-select');
+  const msg = document.getElementById('sheet-msg');
+  const idx = select.value;
+  if (idx === '') {
+    msg.style.display = 'block';
+    msg.className = 'sheet-msg error';
+    msg.textContent = 'Select a product first.';
+    return;
+  }
+  const p = allProducts[parseInt(idx)];
+  document.getElementById('f-name').value    = p['Product Name']     || '';
+  document.getElementById('f-story').value   = p['Product Story']    || '';
+  document.getElementById('f-partner').value = p['Partner']          || '';
+  document.getElementById('f-features').value= p['Product Features'] || '';
+  document.getElementById('f-chase').value   = p['Chase System']     || '';
+  document.getElementById('f-release').value = p['Release Info']     || '';
+  document.getElementById('f-tagline').value = p['Tagline']          || '';
+  msg.style.display = 'block';
+  msg.className = 'sheet-msg';
+  msg.textContent = `Loaded: ${p['Product Name'] || 'product'}. Edit any field before generating.`;
+}
+
+// Load products on page ready
+document.addEventListener('DOMContentLoaded', loadProductsFromSheet);
+
+// ─── PARSE DELIVERABLES ───────────────────────────────────────────────────────
+function parseDeliverables(text) {
+  const result = {};
+  for (let i = 0; i < DELIVERABLE_KEYS.length; i++) {
+    const key = DELIVERABLE_KEYS[i];
+    const next = DELIVERABLE_KEYS[i + 1];
+    const start = text.indexOf(`## ${key}`);
+    if (start === -1) continue;
+    const contentStart = start + `## ${key}`.length;
+    const contentEnd = next ? (text.indexOf(`## ${next}`) !== -1 ? text.indexOf(`## ${next}`) : text.length) : text.length;
+    result[key] = text.slice(contentStart, contentEnd).trim();
+  }
+  return result;
+}
+
+function parseVersions(text) {
+  const regex = /## (VERSION \d+ — [^\n]+)\n([\s\S]*?)(?=## VERSION \d+|$)/g;
+  const results = [];
+  let m;
+  while ((m = regex.exec(text)) !== null) {
+    results.push({ label: m[1].trim(), content: m[2].trim() });
+  }
+  return results;
+}
+
+// ─── COPY GENERATOR ───────────────────────────────────────────────────────────
+async function generateCopy() {
+  const story = document.getElementById('f-story').value.trim();
+  const outputEl = document.getElementById('copy-output');
+  const statusEl = document.getElementById('copy-status');
+  const btn = document.getElementById('btn-copy');
+
+  if (!story) {
+    outputEl.innerHTML = '<div class="error-msg">product story is required — that\'s the heart of everything.</div>';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'GENERATING…';
+  statusEl.style.display = 'block';
+  statusEl.className = 'status-bar generating';
+  statusEl.textContent = 'generating copy…';
+  outputEl.innerHTML = skeletonHTML(DELIVERABLE_KEYS.length);
+
+  const name = document.getElementById('f-name').value.trim();
+  const partner = document.getElementById('f-partner').value.trim();
+  const features = document.getElementById('f-features').value.trim();
+  const chase = document.getElementById('f-chase').value.trim();
+  const release = document.getElementById('f-release').value.trim();
+  const tagline = document.getElementById('f-tagline').value.trim();
+
+  const taglineNote = tagline
+    ? `\n\nTAGLINE (include in announcement email, launch email, Instagram caption, LinkedIn post — NOT in press release or partner pitch doc): "${tagline}"`
+    : '';
+
+  const user = `PRODUCT BRIEF\n\nProduct Name: ${name||'(not provided)'}\nProduct Story: ${story}\nPartner / League: ${partner||'(not provided)'}\nProduct Features: ${features||'(not provided)'}\nChase System: ${chase||'(not provided)'}\nRelease Information: ${release||'(not provided)'}${taglineNote}\n\nGenerate all seven deliverables.`;
+
+  try {
+    const text = await callClaude(COPY_SYSTEM, user);
+    currentDeliverables = parseDeliverables(text);
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    statusEl.className = 'status-bar';
+    statusEl.textContent = `generated at ${time} — click any field to edit before exporting`;
+    outputEl.innerHTML = renderDeliverables(currentDeliverables);
+  } catch(e) {
+    statusEl.style.display = 'none';
+    outputEl.innerHTML = `<div class="error-msg">${e.message}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'GENERATE ALL COPY';
+  }
+}
+
+function renderDeliverables(deliverables) {
+  const exportBar = `
+    <div class="export-bar">
+      <span class="export-label">Edit any section below, then export</span>
+      <button class="btn-export" onclick="exportToDoc()">EXPORT TO GOOGLE DOC</button>
+    </div>`;
+
+  const items = DELIVERABLE_KEYS.map((key, i) => {
+    const content = deliverables[key] || '';
+    const isFirst = i === 0;
+    return `
+      <div class="deliverable${isFirst ? ' open' : ''}" id="deliv-${key.replace(/ /g,'_')}">
+        <div class="deliv-header" onclick="toggleDeliv(this.parentElement)">
+          <span class="deliv-title">${DELIVERABLE_LABELS[key]}</span>
+          <div class="deliv-actions">
+            <button class="btn-copy" onclick="event.stopPropagation();copyDeliv('${key.replace(/ /g,'_')}')">Copy</button>
+            <span class="chevron">▼</span>
+          </div>
+        </div>
+        <div class="deliv-body">
+          <div class="edit-hint">click to edit</div>
+          <div class="deliv-content" id="content-${key.replace(/ /g,'_')}" contenteditable="true" spellcheck="true">${escHtml(content)}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  return exportBar + items;
+}
+
+function toggleDeliv(el) { el.classList.toggle('open'); }
+
+function copyDeliv(keyId) {
+  const el = document.getElementById(`content-${keyId}`);
+  if (!el) return;
+  navigator.clipboard.writeText(el.innerText).then(() => {
+    const btns = document.querySelectorAll('.btn-copy');
+    btns.forEach(b => {
+      if (b.getAttribute('onclick').includes(keyId)) {
+        b.textContent = 'Copied';
+        b.classList.add('copied');
+        setTimeout(() => { b.textContent = 'Copy'; b.classList.remove('copied'); }, 2000);
+      }
+    });
+  });
+}
+
+// ─── EXPORT TO GOOGLE DOC ─────────────────────────────────────────────────────
+function exportToDoc() {
+  const productName = document.getElementById('f-name').value.trim() || 'ghostwrite release';
+  const date = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+
+  let html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<style>
+  body { font-family: Arial, sans-serif; font-size: 11pt; color: #111; max-width: 720px; margin: 40px auto; padding: 0 20px; }
+  h1 { font-size: 20pt; font-weight: 900; text-transform: lowercase; letter-spacing: 0.03em; border-bottom: 2px solid #111; padding-bottom: 8px; margin-bottom: 4px; }
+  .meta { font-size: 9pt; color: #888; margin-bottom: 32px; }
+  h2 { font-size: 9pt; font-weight: bold; letter-spacing: 0.15em; text-transform: uppercase; color: #888; border-top: 1px solid #ddd; padding-top: 20px; margin-top: 32px; margin-bottom: 12px; }
+  p { margin: 0 0 10px; line-height: 1.7; }
+  .content { white-space: pre-wrap; font-size: 11pt; line-height: 1.8; }
+</style>
+</head><body>
+<h1>${escHtml(productName)}</h1>
+<div class="meta">ghostwrite copy studio · generated ${date}</div>`;
+
+  DELIVERABLE_KEYS.forEach(key => {
+    const el = document.getElementById(`content-${key.replace(/ /g,'_')}`);
+    const content = el ? el.innerText : (currentDeliverables[key] || '');
+    html += `<h2>${DELIVERABLE_LABELS[key]}</h2><div class="content">${escHtml(content)}</div>`;
+  });
+
+  html += '</body></html>';
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ghostwrite-copy-${productName.toLowerCase().replace(/[^a-z0-9]+/g,'-')}.html`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ─── STORY IDEATION ───────────────────────────────────────────────────────────
+async function generateIdeation() {
+  const seed = document.getElementById('i-seed').value.trim();
+  const context = document.getElementById('i-context').value.trim();
+  const outputEl = document.getElementById('ideation-output');
+  const statusEl = document.getElementById('ideation-status');
+  const btn = document.getElementById('btn-ideation');
+
+  if (!seed) {
+    outputEl.innerHTML = '<div class="error-msg">enter a story seed first.</div>';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'GENERATING…';
+  statusEl.style.display = 'block';
+  statusEl.className = 'status-bar generating';
+  statusEl.textContent = 'expanding your story…';
+  outputEl.innerHTML = skeletonHTML(3);
+
+  const user = `STORY SEED: ${seed}\n\nADDITIONAL CONTEXT: ${context||'(none)'}\n\nGenerate 3 distinct expanded story versions.`;
+
+  try {
+    const text = await callClaude(IDEATION_SYSTEM, user);
+    const versions = parseVersions(text);
+    statusEl.className = 'status-bar';
+    statusEl.textContent = '3 versions generated — pick one, mix and match, or use as a jumping-off point';
+    outputEl.innerHTML = renderVersions(versions.length ? versions : [{ label:'VERSION 1', content: text }]);
+  } catch(e) {
+    statusEl.style.display = 'none';
+    outputEl.innerHTML = `<div class="error-msg">${e.message}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'GENERATE 3 VERSIONS';
+  }
+}
+
+function renderVersions(versions) {
+  return versions.map((v, i) => `
+    <div class="version-card${i === 0 ? ' open' : ''}" id="version-${i}">
+      <div class="version-header" onclick="toggleVersion(${i})">
+        <span class="version-title">${escHtml(v.label)}</span>
+        <div class="deliv-actions">
+          <button class="btn-copy" onclick="event.stopPropagation();copyVersion(${i})">Copy</button>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="version-body">
+        <div class="version-content" id="version-content-${i}" contenteditable="true" spellcheck="true">${escHtml(v.content)}</div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleVersion(i) {
+  document.getElementById(`version-${i}`).classList.toggle('open');
+}
+
+function copyVersion(i) {
+  const el = document.getElementById(`version-content-${i}`);
+  if (!el) return;
+  navigator.clipboard.writeText(el.innerText).then(() => {
+    const card = document.getElementById(`version-${i}`);
+    const btn = card.querySelector('.btn-copy');
+    btn.textContent = 'Copied'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ─── SKELETON ─────────────────────────────────────────────────────────────────
+function skeletonHTML(n) {
+  const widths = ['82%','60%','71%','45%','68%'];
+  return Array.from({length: n}, (_, i) => `
+    <div class="skeleton-item">
+      <div class="skel-label"></div>
+      <div class="skel-line" style="width:${widths[i%widths.length]}"></div>
+      <div class="skel-line" style="width:${widths[(i+2)%widths.length]}"></div>
+    </div>`).join('');
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function escHtml(str) {
+  return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── KEYBOARD SHORTCUTS ───────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    if (currentTab === 'copy') generateCopy();
+    else generateIdeation();
+  }
+});
+</script>
+</body>
+</html>
